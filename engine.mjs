@@ -1,9 +1,9 @@
-class Value {
+export default class Value {
   constructor(data, children = null, op = null) {
     this.data = data;
     this.grad = 0.0;
     this.op = op;
-    this.backward;
+    this.backward = () => {};
     this.children = children;
   }
   //Operations
@@ -13,7 +13,7 @@ class Value {
 
     out.backward = () => {
       this.grad += 1.0 * out.grad;
-      other.grad += 1.0 * out.grad;
+      assertOther.grad += 1.0 * out.grad;
     };
 
     return out;
@@ -24,7 +24,7 @@ class Value {
 
     out.backward = () => {
       this.grad += other.data * out.grad;
-      other.grad += this.data * out.grad;
+      assertOther.grad += this.data * out.grad;
     };
 
     return out;
@@ -50,4 +50,29 @@ class Value {
     return out;
   }
   //Backpropagation
+  backprop() {
+    let sorted = [];
+    let visited = new Set();
+    function topological_sort(node) {
+      if (visited.has(node)) return;
+      visited.add(node);
+      if (!node.children) {
+        sorted.push(node);
+        return;
+      }
+      for (let child of node.children) {
+        topological_sort(child);
+      }
+      sorted.push(node);
+    }
+
+    topological_sort(this);
+    sorted.reverse();
+
+    this.grad = 1.0;
+
+    for (let node of sorted) {
+      node.backward();
+    }
+  }
 }
