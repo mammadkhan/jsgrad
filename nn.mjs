@@ -1,14 +1,14 @@
 import Value from "./engine.mjs";
 
-class Neuron {
+export class Neuron {
   constructor(inputSize) {
     this.weights = Array.from({ length: inputSize }, () => new Value(Math.random() * 2 - 1));
     this.bias = new Value(Math.random() * 2 - 1);
   }
   calc(input) {
     let dotp = this.bias;
-    for (let i = 0; i < input.length; i++) {
-      dotp.data += this.weights[i].data * input[i];
+    for (let i = 0; i < this.weights.length; i++) {
+      dotp = dotp.add(this.weights[i].mul(input[i]));
     }
     return dotp.tanh();
   }
@@ -17,28 +17,29 @@ class Neuron {
   }
 }
 
-class Layer {
+export class Layer {
   constructor(inputSize, outputSize) {
     this.neurons = Array.from({ length: outputSize }, () => new Neuron(inputSize));
   }
   calc(input) {
     const out = this.neurons.map((neuron) => neuron.calc(input));
-    return out.length === 1 ? out[0] : out;
+    return out.length === 1 ? out[out.length - 1] : out;
   }
   params() {
     return this.neurons.flatMap((neuron) => neuron.params());
   }
 }
 
-class MLP {
+export class MLP {
   constructor(inputSize, outputSize) {
-    this.layers = Array.from(
-      { length: outputSize.length },
-      (layer, index) => new Layer(inputSize, outputSize[index])
-    );
+    const sz = [inputSize, ...outputSize];
+    this.layers = outputSize.map((output, i) => new Layer(sz[i], sz[i + 1]));
   }
   calc(input) {
-    return this.layers.map((layer) => layer.calc(input)).pop();
+    for (const layer of this.layers) {
+      input = layer.calc(input);
+    }
+    return input;
   }
   params() {
     return this.layers.flatMap((layer) => layer.params());

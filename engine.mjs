@@ -18,12 +18,17 @@ export default class Value {
 
     return out;
   }
+  sub(other) {
+    const assertOther = other instanceof Value ? other : new Value(other);
+
+    return this.add(assertOther.neg());
+  }
   mul(other) {
     const assertOther = other instanceof Value ? other : new Value(other);
     const out = new Value(this.data * assertOther.data, [this, assertOther], "*");
 
     out.backward = () => {
-      this.grad += other.data * out.grad;
+      this.grad += assertOther.data * out.grad;
       assertOther.grad += this.data * out.grad;
     };
 
@@ -38,6 +43,9 @@ export default class Value {
     };
 
     return out;
+  }
+  neg() {
+    return this.mul(-1);
   }
   //Activation
   tanh() {
