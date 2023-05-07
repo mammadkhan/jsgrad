@@ -18,11 +18,6 @@ export default class Value {
 
     return out;
   }
-  sub(other) {
-    const assertOther = other instanceof Value ? other : new Value(other);
-
-    return this.add(assertOther.neg());
-  }
   mul(other) {
     const assertOther = other instanceof Value ? other : new Value(other);
     const out = new Value(this.data * assertOther.data, [this, assertOther], "*");
@@ -43,6 +38,11 @@ export default class Value {
     };
 
     return out;
+  }
+  sub(other) {
+    const assertOther = other instanceof Value ? other : new Value(other);
+
+    return this.add(assertOther.neg());
   }
   neg() {
     return this.mul(-1);
